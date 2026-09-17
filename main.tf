@@ -15,10 +15,14 @@ module "network" {
 }
 
 
+# output "az_names" {
+#   value = module.network.az_name
+# }
 
 
-
-
+# output "subnet" {
+#   value = module.network.subnet_ids
+# }
 
 
 

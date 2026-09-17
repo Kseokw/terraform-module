@@ -4,4 +4,7 @@ locals {
   tag_module  = "network"
   subnet_map  = var.subnet_map
   subnet_type = var.subnet_type
+  az_names    = var.az_names
 }
+
+

@@ -23,14 +23,3 @@ locals {
   subnet_type = var.subnet_type
 }
 
-# output "vpc_cidr" {
-#   value = "${split(".", var.vpc_cidr)[0]}.${split(".", var.vpc_cidr)[1]}"
-# }
-
-# output "vpc_cidr2" {
-#   value = join(".", slice(split(".", var.vpc_cidr), 0, 2))
-# }
-
-# output "subnet_map" {
-#   value = local.subnet_map
-# }

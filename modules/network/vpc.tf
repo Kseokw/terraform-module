@@ -47,92 +47,7 @@ resource "aws_subnet" "subnet" {
   )
 }
 
-# # 수동 생성
-# resource "aws_subnet" "public_1a_subnet" {
-#   vpc_id            = aws_vpc.this.id
-#   cidr_block        = "10.0.1.0/24"
-#   availability_zone = "ap-southeast-1a"
 
-#   # Public Subnet 설정
-#   map_public_ip_on_launch                     = true # 퍼블릭 IPv4 주소 자동 할당
-#   enable_resource_name_dns_a_record_on_launch = true # 리소스 이름 DNS A 레코드
-
-#   tags = {
-#     Name = "${local.tag_header}-public-1a-subnet"
-#   }
-# }
-
-# resource "aws_subnet" "public_1b_subnet" {
-#   vpc_id            = aws_vpc.this.id
-#   cidr_block        = "10.0.2.0/24"
-#   availability_zone = "ap-southeast-1a"
-
-#   # Public Subnet 설정
-#   map_public_ip_on_launch                     = true # 퍼블릭 IPv4 주소 자동 할당
-#   enable_resource_name_dns_a_record_on_launch = true # 리소스 이름 DNS A 레코드
-
-#   tags = {
-#     Name = "${local.tag_header}-public-1b-subnet"
-#   }
-# }
-
-# resource "aws_subnet" "public_1c_subnet" {
-#   vpc_id            = aws_vpc.this.id
-#   cidr_block        = "10.0.3.0/24"
-#   availability_zone = "ap-southeast-1a"
-
-#   # Public Subnet 설정
-#   map_public_ip_on_launch                     = true # 퍼블릭 IPv4 주소 자동 할당
-#   enable_resource_name_dns_a_record_on_launch = true # 리소스 이름 DNS A 레코드
-
-#   tags = {
-#     Name = "${local.tag_header}-public-1c-subnet"
-#   }
-# }
-
-# # ========================================================================================
-# # private 서브넷 생성
-# resource "aws_subnet" "priv_1a_subnet" {
-#   vpc_id            = aws_vpc.this.id
-#   cidr_block        = "10.0.11.0/24"
-#   availability_zone = "ap-southeast-1a"
-
-#   tags = {
-#     Name = "${local.tag_header}priv-1a-subnet"
-#   }
-# }
-
-# resource "aws_subnet" "priv_1b_subnet" {
-#   vpc_id            = aws_vpc.this.id
-#   cidr_block        = "10.0.12.0/24"
-#   availability_zone = "ap-southeast-1a"
-
-#   tags = {
-#     Name = "${local.tag_header}priv-1b-subnet"
-#   }
-# }
-
-
-# resource "aws_subnet" "priv_1c_subnet" {
-#   vpc_id            = aws_vpc.this.id
-#   cidr_block        = "10.0.13.0/24"
-#   availability_zone = "ap-southeast-1a"
-
-#   tags = {
-#     Name = "${local.tag_header}priv-1c-subnet"
-#   }
-# }
-
-# # NAT Gateway 생성
-# resource "aws_nat_gateway" "nat_gw" {
-#   allocation_id = aws_eip.nat_eip.id
-#   # NAT Gateway를 생성할 Public Subnet 지정
-#   subnet_id  = aws_subnet.public_1a_subnet.id
-#   depends_on = [aws_internet_gateway.igw] # NAT Gateway 생성 시점에 IGW가 생성되어 있으면 생성/의존성
-#   tags = {
-#     Name = "${local.tag_header}-nat-gw"
-#   }
-# }
 
 # =======================================================================================================
 # gateway 생성
@@ -158,8 +73,8 @@ resource "aws_nat_gateway" "nat_gw" {
   allocation_id = aws_eip.nat_eip.id
   # NAT Gateway를 생성할 Public Subnet 지정
   # 결국 여기 들어가야할 값 subnet_id = aws_subnet.public1a.id
-  # subnet_id  = aws_subnet.subnet["public${split("-", local.azs[0])[2]}"].id
-  subnet_id  = aws_subnet.subnet["public1a"].id
+  subnet_id = aws_subnet.subnet["public${split("-", local.az_names[0])[2]}"].id
+  # subnet_id  = aws_subnet.subnet["public1a"].id
   depends_on = [aws_internet_gateway.igw] # NAT Gateway 생성 시점에 IGW가 생성되어 있으면 생성/의존성
   tags = {
     Name = "${local.tag_header}-nat-gw"
@@ -170,14 +85,13 @@ resource "aws_nat_gateway" "nat_gw" {
 # =======================================================================================================
 # Route table 생성
 # 1. Public 서브넷용 Route Table 생성 (IGW 연결)
-resource "aws_route_table" "public" {
+resource "aws_route_table" "public_rt" {
   vpc_id = aws_vpc.vpc.id
 
   route {
     cidr_block = "0.0.0.0/0"
     gateway_id = aws_internet_gateway.igw.id
   }
-
   tags = {
     Name = "${local.tag_header}-public-rt"
   }
@@ -185,16 +99,28 @@ resource "aws_route_table" "public" {
 
 # 2. Private/Cluster 서브넷용 Route Table 생성 (NAT Gateway 연결)
 # NAT Gateway가 1개이므로 1개의 라우트 테이블을 모든 Private 서브넷이 공유합니다.
-resource "aws_route_table" "private" {
+
+resource "aws_route_table" "private_rt" {
+  for_each = toset(local.az_names)
+  vpc_id   = aws_vpc.vpc.id
+  route {
+    cidr_block     = "0.0.0.0/0"
+    nat_gateway_id = aws_nat_gateway.nat_gw.id
+  }
+  tags = {
+    Name = "${local.tag_header}-private${split("-", each.key)[2]}-rt"
+  }
+}
+
+resource "aws_route_table" "cluster_rt" {
   vpc_id = aws_vpc.vpc.id
 
   route {
     cidr_block     = "0.0.0.0/0"
     nat_gateway_id = aws_nat_gateway.nat_gw.id
   }
-
   tags = {
-    Name = "${local.tag_header}-private-rt"
+    Name = "${local.tag_header}-cluster-rt"
   }
 }
 
@@ -206,96 +132,8 @@ resource "aws_route_table_association" "subnet_association" {
   subnet_id = aws_subnet.subnet[each.key].id
 
   # type이 "public"이면 public 라우트 테이블을, 아니면 private 라우트 테이블을 연결
-  route_table_id = each.value.type == "public" ? aws_route_table.public.id : aws_route_table.private.id
+  route_table_id = (each.value.type == "public" ? aws_route_table.public_rt.id :
+    each.value.type == "private" ? aws_route_table.private_rt[each.value.az].id : aws_route_table.cluster_rt.id
+  )
 }
 
-# resource "aws_route_table" "public_rt" {
-#   vpc_id = aws_vpc.this.id
-#   route { # 라우팅테이블 생성하면서 라우팅 지정
-#     cidr_block = "0.0.0.0/0"
-#     gateway_id = aws_internet_gateway.igw.id
-#   }
-#   tags = {
-#     Name = "${local.tag_header}-public-rt"
-#   }
-# }
-
-# resource "aws_route_table" "private1a_rt" {
-#   vpc_id = aws_vpc.this.id
-#   route { # 라우팅테이블 생성하면서 라우팅 지정
-#     cidr_block = "0.0.0.0/0"
-#     gateway_id = aws_nat_gateway.nat_gw.id
-#   }
-#   tags = {
-#     Name = "${local.tag_header}-private1a-rt"
-#   }
-# }
-
-# resource "aws_route_table" "private1b_rt" {
-#   vpc_id = aws_vpc.this.id
-#   route { # 라우팅테이블 생성하면서 라우팅 지정
-#     cidr_block = "0.0.0.0/0"
-#     gateway_id = aws_nat_gateway.nat_gw.id
-#   }
-#   tags = {
-#     Name = "${local.tag_header}-private1b-rt"
-#   }
-# }
-
-# resource "aws_route_table" "private1c_rt" {
-#   vpc_id = aws_vpc.this.id
-#   route { # 라우팅테이블 생성하면서 라우팅 지정
-#     cidr_block = "0.0.0.0/0"
-#     gateway_id = aws_nat_gateway.nat_gw.id
-#   }
-#   tags = {
-#     Name = "${local.tag_header}-private1c-rt"
-#   }
-# }
-
-# resource "aws_route_table" "cluster_rt" {
-#   vpc_id = aws_vpc.this.id
-#   route { # 라우팅테이블 생성하면서 라우팅 지정
-#     cidr_block = "0.0.0.0/0"
-#     gateway_id = aws_nat_gateway.nat_gw.id
-#   }
-#   tags = {
-#     Name = "${local.tag_header}-cluster-rt"
-#   }
-# }
-
-# resource "aws_route_table_association" "public1a_rt_association" {
-#   subnet_id      = aws_subnet.public_1a_subnet.id
-#   route_table_id = aws_route_table.public_rt.id
-# }
-
-# resource "aws_route_table_association" "public1b_rt_association" {
-#   subnet_id      = aws_subnet.public_1b_subnet.id
-#   route_table_id = aws_route_table.public_rt.id
-# }
-
-# resource "aws_route_table_association" "public1c_rt_association" {
-#   subnet_id      = aws_subnet.public_1c_subnet.id
-#   route_table_id = aws_route_table.public_rt.id
-# }
-
-# resource "aws_route_table_association" "priv1a_rt_association" {
-
-#   subnet_id      = aws_subnet.priv1a_subnet.id
-#   route_table_id = aws_route_table.private1a_rt.id
-# }
-# resource "aws_route_table_association" "priv1a_rt_association" {
-
-#   subnet_id      = aws_subnet.priv1a_subnet.id
-#   route_table_id = aws_route_table.std07_private_1a_rt.id
-# }
-# resource "aws_route_table_association" "priv1a_rt_association" {
-
-#   subnet_id      = aws_subnet.priv1a_subnet.id
-#   route_table_id = aws_route_table.std07_private_1a_rt.id
-# }
-# resource "aws_route_table_association" "std07_private_1a_rt_association" {
-
-#   subnet_id      = aws_subnet.std07_lab_priv_1a_subnet.id
-#   route_table_id = aws_route_table.std07_private_1a_rt.id
-# }
