@@ -11,7 +11,6 @@ resource "aws_vpc" "vpc" {
   }
 }
 
-# 
 
 # 서브넷 생성
 resource "aws_subnet" "subnet" {
@@ -136,4 +135,3 @@ resource "aws_route_table_association" "subnet_association" {
     each.value.type == "private" ? aws_route_table.private_rt[each.value.az].id : aws_route_table.cluster_rt.id
   )
 }
-

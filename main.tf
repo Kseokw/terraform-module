@@ -7,22 +7,14 @@ module "network" {
   # }
 
   # <모듈 변수명> = <모듈로 넘겨줄 값 | var.변수명 | local.변수명>
-  az_names    = local.az_names
-  vpc_cidr    = local.vpc_cidr
-  tag_header  = local.tag_header
-  subnet_map  = local.subnet_map
-  subnet_type = local.subnet_type
+  az_names        = local.az_names
+  vpc_cidr        = local.vpc_cidr
+  tag_header      = local.tag_header
+  subnet_map      = local.subnet_map
+  subnet_type     = local.subnet_type
+  instance_subnet = "public1a"
 }
 
-
-# output "az_names" {
-#   value = module.network.az_name
-# }
-
-
-# output "subnet" {
-#   value = module.network.subnet_ids
-# }
 
 
 

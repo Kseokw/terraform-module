@@ -21,5 +21,6 @@ locals {
     }
   ]...)
   subnet_type = var.subnet_type
+  region      = "ap-southeast-1"
 }
 

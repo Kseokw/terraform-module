@@ -1,3 +1,12 @@
+# output "az_names" {
+#   value = module.network.az_name
+# }
+
+
+# output "subnet" {
+#   value = module.network.subnet_ids
+# }
+
 # output "vpc_cidr" {
 #   value = "${split(".", var.vpc_cidr)[0]}.${split(".", var.vpc_cidr)[1]}"
 # }

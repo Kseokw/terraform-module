@@ -1,10 +1,12 @@
 locals {
-  vpc_cidr    = var.vpc_cidr
-  tag_header  = var.tag_header
-  tag_module  = "network"
-  subnet_map  = var.subnet_map
-  subnet_type = var.subnet_type
-  az_names    = var.az_names
+  vpc_cidr        = var.vpc_cidr
+  tag_header      = var.tag_header
+  tag_module      = "network"
+  subnet_map      = var.subnet_map
+  subnet_type     = var.subnet_type
+  az_names        = var.az_names
+  region          = var.region
+  instance_subnet = var.instance_subnet
 }
 
 
