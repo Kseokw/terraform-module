@@ -33,7 +33,7 @@ resource "aws_vpc_endpoint" "ecr-api" {
 
   subnet_ids = [
     for k, s in local.subnet_map : aws_subnet.subnet[k].id
-    if s.type != "public"
+    if s.type == "private"
   ]
 
   # ECR은 통신포트로 443을 사용
@@ -54,7 +54,7 @@ resource "aws_vpc_endpoint" "ecr-dkr" {
 
   subnet_ids = [
     for k, s in local.subnet_map : aws_subnet.subnet[k].id
-    if s.type != "public"
+    if s.type == "private"
   ]
 
   # ECR은 통신포트로 443을 사용

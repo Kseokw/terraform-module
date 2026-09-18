@@ -12,9 +12,18 @@ module "network" {
   tag_header      = local.tag_header
   subnet_map      = local.subnet_map
   subnet_type     = local.subnet_type
-  instance_subnet = "public1a"
+  instance_subnet = local.instance_subnet
+  region          = local.region
 }
 
+module "code" {
+  source = "./modules/code"
+
+  tag_header         = local.tag_header
+  subnet_map         = local.subnet_map
+  external_alb_sg_id = module.network.external_alb_sg_id
+  subnet_ids         = module.network.subnet_ids_by_type["Cluster"]
+}
 
 
 

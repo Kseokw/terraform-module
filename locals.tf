@@ -20,7 +20,8 @@ locals {
       }
     }
   ]...)
-  subnet_type = var.subnet_type
-  region      = "ap-southeast-1"
+  subnet_type     = var.subnet_type
+  region          = "ap-southeast-1"
+  instance_subnet = "public1a"
 }
 
