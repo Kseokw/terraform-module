@@ -343,6 +343,31 @@ resource "aws_vpc_security_group_egress_rule" "node_all" {
   cidr_ipv4         = "0.0.0.0/0"
 }
 
+resource "aws_security_group" "gitlab" {
+  name        = "${local.tag_header}-gitlab-sg"
+  description = "gitlab_2222"
+  vpc_id      = aws_vpc.vpc.id
+
+  ingress {
+    from_port   = 2222
+    to_port     = 2222
+    protocol    = "tcp"
+    cidr_blocks = [aws_vpc.vpc.cidr_block]
+  }
+
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "${local.tag_header}-gitlab-sg"
+  }
+}
+
+
 # 순환참조로 인한 오류 발생 예상으로 주석처리
 # # EKS
 # resource "aws_security_group" "cluster_sg" {

@@ -16,14 +16,14 @@ module "network" {
   region          = local.region
 }
 
-module "code" {
-  source = "./modules/code"
+# module "code" {
+#   source = "./modules/code"
 
-  tag_header         = local.tag_header
-  subnet_map         = local.subnet_map
-  external_alb_sg_id = module.network.external_alb_sg_id
-  subnet_ids         = module.network.subnet_ids_by_type["Cluster"]
-}
+#   tag_header         = local.tag_header
+#   subnet_map         = local.subnet_map
+#   external_alb_sg_id = module.network.external_alb_sg_id
+#   subnet_ids         = module.network.subnet_ids_by_type["Cluster"]
+# }
 
 
 

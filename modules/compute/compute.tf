@@ -55,3 +55,43 @@
 #     Name = "${local.tag_header}-instance"
 #   }
 # }
+
+# std07-ex-ec2-ssm-role 부여해줘야하
+resource "aws_instance" "instance" {
+  # ami
+  ami = "ami-095f155a67469a548" # amazon2023
+  # instance type
+  instance_type = "t3.large"
+  # key pair, key_name
+  key_name = "std07-key"
+  # volume
+  root_block_device {
+    volume_size           = 20    # 단위 GB
+    volume_type           = "gp3" # 볼륨 타입(최신 가성비 타입인 gp3 권장)
+    delete_on_termination = true  # 인스턴스 삭제 시 볼륨도 함께 삭제(안정성을 고려하면 Flase 부여)
+    tags = {
+      Name = "${local.tag_header}-instance-volume"
+    }
+  }
+  ebs_block_device {
+    device_name           = "${local.tag_header}-instance-add-volume"
+    volume_size           = 30
+    volume_type           = "gp3"
+    delete_on_termination = true
+    tags = {
+      Name = "${local.tag_header}-instance-add-volume"
+    }
+  }
+
+  # subnet
+  subnet_id = aws_subnet.subnet[local.instance_subnet].id
+  # 보안그룹
+  vpc_security_group_ids = [
+    # aws_security_group.ssh_sg.id,
+    # aws_security_group.internal_alb_sg
+    aws_security_group.nat_sg.id
+  ]
+  tags = {
+    Name = "${local.tag_header}-instance"
+  }
+}
