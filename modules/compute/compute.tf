@@ -32,28 +32,28 @@
 #     # aws_security_group.internal_alb_sg
 #     aws_security_group.nat_sg.id
 #   ]
-#   # User Data
-#   user_data = <<-EOF
-#     #!/bin/bash
-#     #!/bin/bash
-#     set -e
-#     apt update -y
-#     apt install -y curl unzip
+#   #   # User Data
+#   #   user_data = <<-EOF
+#   #     #!/bin/bash
+#   #     #!/bin/bash
+#   #     set -e
+#   #     apt update -y
+#   #     apt install -y curl unzip
 
-#     curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
-#     sh /tmp/get-docker.sh
-#     systemctl enable --now docker
-#     usermod -aG docker ubuntu
+#   #     curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
+#   #     sh /tmp/get-docker.sh
+#   #     systemctl enable --now docker
+#   #     usermod -aG docker ubuntu
 
-#     # # EFS 마운트
-#     # mkdir -p /mnt/efs
-#     # echo "${local.efs_id}.efs.${local.region}.amazonaws.com:/ /mnt/efs nfs4 nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,_netdev 0 0" >> /etc/fstab
-#     # mount -a
-#     EOF
+#   #     # # EFS 마운트
+#   #     # mkdir -p /mnt/efs
+#   #     # echo "${local.efs_id}.efs.${local.region}.amazonaws.com:/ /mnt/efs nfs4 nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,_netdev 0 0" >> /etc/fstab
+#   #     # mount -a
+#   #     EOF
 
-#   tags = {
-#     Name = "${local.tag_header}-instance"
-#   }
+#   #   tags = {
+#   #     Name = "${local.tag_header}-instance"
+#   #   }
 # }
 
 # std07-ex-ec2-ssm-role 부여해줘야하
@@ -74,7 +74,7 @@ resource "aws_instance" "instance" {
     }
   }
   ebs_block_device {
-    device_name           = "${local.tag_header}-instance-add-volume"
+    device_name           = "/dev/sdb"
     volume_size           = 30
     volume_type           = "gp3"
     delete_on_termination = true
@@ -84,13 +84,14 @@ resource "aws_instance" "instance" {
   }
 
   # subnet
-  subnet_id = aws_subnet.subnet[local.instance_subnet].id
+  subnet_id = var.subnet_ids[local.instance_subnet]
   # 보안그룹
-  vpc_security_group_ids = [
-    # aws_security_group.ssh_sg.id,
-    # aws_security_group.internal_alb_sg
-    aws_security_group.nat_sg.id
-  ]
+  vpc_security_group_ids = var.security_group_ids
+  # vpc_security_group_ids = [
+  #   # aws_security_group.ssh_sg.id,
+  #   # aws_security_group.internal_alb_sg
+  #   aws_security_group.nat_sg.id
+  # ]
   tags = {
     Name = "${local.tag_header}-instance"
   }

@@ -7,9 +7,9 @@
 #       + "ap-southeast-1c",
 #     ]
 
-# output "subnet_ids" {
-#   value = { for k, s in aws_subnet.subnet : k => s.id }
-# }
+output "subnet_ids" {
+  value = { for k, s in aws_subnet.subnet : k => s.id }
+}
 #   + subnet   = {
 #       + Cluster1a = (known after apply)
 #       + Cluster1b = (known after apply)
@@ -21,6 +21,10 @@
 #       + public1b  = (known after apply)
 #       + public1c  = (known after apply)
 #     }
+
+output "nat_sg_id" {
+  value = aws_security_group.nat_sg.id
+}
 
 # output "private_rt_ids" {
 #   value = { for k, s in aws_route_table.private_rt : k => s.id }

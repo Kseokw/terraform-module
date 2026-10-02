@@ -16,6 +16,20 @@ module "network" {
   region          = local.region
 }
 
+# module "compute" {
+#   source = "./modules/compute"
+#   # 다른 리전을 사용하고자 할 경우, provider {}에 미리 정의 되어있어야 함.
+#   # providers = {
+#   #   aws = aws.seoul
+#   # }
+
+#   # <모듈 변수명> = <모듈로 넘겨줄 값 | var.변수명 | local.변수명>
+#   tag_header         = local.tag_header
+#   instance_subnet    = local.instance_subnet
+#   subnet_ids         = module.network.subnet_ids
+#   security_group_ids = [module.network.nat_sg_id]
+# }
+
 # module "code" {
 #   source = "./modules/code"
 
